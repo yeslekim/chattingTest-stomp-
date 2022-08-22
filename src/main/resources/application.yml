@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 10
+    driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+    url: jdbc:log4jdbc:mysql://localhost:3306/chat?characterEncoding=UTF-8&serverTimezone=UTC
+    username: 
+    password: 
+  jpa:
+    hibernate:
+      ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+      use-new-id-generator-mappings: false
+    properties:
+      hibernate.format_sql: true
+    generate-ddl: true
+    show-sql: true
+
+server:
+  port : 7777
+
+
+logging:
+  level:
+    web: warn 
+    root: warn
