@@ -24,12 +24,16 @@ public class RoomController {
      * 채팅방 참여하기
      * @param roomId 채팅방 id
      */
-    @GetMapping("/{roomId}")
-    public String joinRoom(@PathVariable(required = false) Integer roomId, Model model) {
+    @GetMapping("/roomList/{roomId}/{sender}")
+    public String joinRoom(@PathVariable(required = false) Integer roomId,
+    		@PathVariable String sender,
+    		Model model) {
         List<Chat> chatList = chatService.findAllChatByRoomId(roomId);
 
         model.addAttribute("roomId", roomId);
+        model.addAttribute("sender", sender);
         model.addAttribute("chatList", chatList);
+         
         return "chat/room";
     }
 

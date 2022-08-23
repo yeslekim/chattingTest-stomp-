@@ -47,9 +47,9 @@ public class ChatService {
 	 * @param sender 보낸이
 	 * @param message 내용
 	 */
-	public Chat createChat(Integer roomId, String sender, String message) {
+	public Chat createChat(Integer roomId, String sender, String message, Integer enterFlag) {
 		Room room = roomRepository.findById(roomId).orElseThrow();
-		return chatRepository.save(Chat.createChat(room, sender, message));
+		return chatRepository.save(Chat.createChat(room, sender, message, enterFlag));
 	}
 	
 	/*

@@ -2,12 +2,64 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <link href="/webjars/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     <title>Title</title>
 </head>
 <body>
     <a th:href="@{/roomForm}">방만들기</a><br>
-    <tr th:each="room : ${roomList}">
-        <td><a th:href="@{/{roomId}(roomId=${room.getId()})}" th:text="${room.getName()}"></a></td>
-    </tr>
+    <table>
+	    <tr th:each="room, stat : ${roomList}">
+	    	<td th:text="|${stat.size - stat.count + 1}|"></td>
+	        <td><a href="javascript:void(0);" th:id="${room.getId()}" th:onclick="nickWrite('/roomList/' + this.getAttribute('id'))" th:text="${room.getName()}" data-toggle="modal" data-target="#exampleModal"></a></td>
+	    </tr>
+    </table>
+	
+	<!-- Modal -->
+	<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true">&times;</span>
+	        </button>
+	      </div>
+	      <div class="modal-body">
+	        <div class="form-group">
+	            <label for="recipient-name" class="col-form-label">대화명:</label>
+	            <input type="text" class="form-control" id="sender">
+	          </div>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-primary" onclick="enterChat();">입장하기</button>
+	        <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+
+
 </body>
+
+
+<script>
+	var url = "";
+	
+	// 채팅방 입장 전 url 저장
+	function nickWrite(roomUrl) {
+		url = roomUrl;
+	}
+	
+	// 채팅방 입장
+	function enterChat() {
+		var sender = $("#sender").val();
+		if(sender == "" || sender == null) {
+			alert("대화명을 입력하세요.");
+			return false;
+		}
+		location.href=url + "/" + sender;
+	}
+</script>
 </html>

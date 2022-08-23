@@ -9,37 +9,21 @@
     <script src="/webjars/stomp-websocket/stomp.min.js"></script>
 </head>
 <body>
-<noscript><h2 style="color: #ff0000">Seems your browser doesn't support Javascript! Websocket relies on Javascript being
-    enabled. Please enable
-    Javascript and reload this page!</h2></noscript>
 <div id="main-content" class="container">
     <div class="row">
         <div class="col-md-6">
             <form class="form-inline">
                 <div class="form-group">
                     <label for="connect">WebSocket connection:</label>
-                    <button id="connect" class="btn btn-default" type="submit">Connect</button>
-                    <button id="disconnect" class="btn btn-default" type="submit" disabled="disabled">Disconnect
+<!--                     <button id="connect" class="btn btn-default" type="submit">Connect</button> -->
+                    <button id="disconnect" class="btn btn-default" type="submit" disabled="disabled">채팅방 나가기
                     </button>
                 </div>
             </form>
         </div>
-        <div class="col-md-6">
-            <form class="form-inline">
-                <div class="form-group">
-                    <label for="name">대화명</label>
-                    <input type="text" id="sender" class="form-control" placeholder="Your name here...">
-                </div>
-                <div class="form-group">
-                    <label for="name">내용</label>
-                    <input type="text" id="message" class="form-control" placeholder="메시지 내용">
-                </div>
-                <button id="send" class="btn btn-default" type="submit">Send</button>
-            </form>
-        </div>
     </div>
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-12" style="width:100%; height:700px; overflow:auto" id="chatBox">
             <table id="conversation" class="table table-striped">
                 <thead>
                 <tr>
@@ -51,12 +35,32 @@
             </table>
         </div>
     </div>
+    <div class="col-md-6">
+	    <form class="form-inline">
+	<!--                 <div class="form-group"> -->
+	<!--                     <label for="name">대화명</label> -->
+	<!--                     <input type="text" id="sender" class="form-control" placeholder="Your name here..."> -->
+	<!--                 </div> -->
+	        <div class="form-group">
+	            <label for="name">내용</label>
+	            <input type="text" id="message" class="form-control" placeholder="메시지 내용">
+	        </div>
+	        <button id="send" class="btn btn-default" type="submit">Send</button>
+	    </form>
+	</div>
 </div>
 </body>
 <script th:inline="javascript">
     var stompClient = null;
     var roomId = [[${roomId}]];
     var chatList = [[${chatList}]];
+    var sender = [[${sender}]];
+    
+    
+    // 스크롤 최하단
+	function scrollFloor() {
+		$('#chatBox').scrollTop($('#chatBox')[0].scrollHeight);
+	}
 
     function setConnected(connected) {
         $("#connect").prop("disabled", connected);
@@ -76,6 +80,14 @@
         stompClient.connect({}, function (frame) {
             setConnected(true);
             console.log('Connected: ' + frame);
+            
+            stompClient.send("/send/"+roomId, {},
+            JSON.stringify({
+                 'sender': sender
+                 , 'message' : "님이 입장하셨습니다."
+                 , 'enterFlag' : 0
+            }));
+            
             loadChat(chatList)  //저장된 채팅 불러오기
 
             //구독
@@ -87,17 +99,24 @@
 
     function disconnect() {
         if (stompClient !== null) {
+        	stompClient.send("/send/"+roomId, {},
+                JSON.stringify({
+                     'sender': sender
+                     , 'message' : "님이 퇴장하셨습니다."
+                     , 'enterFlag' : 1
+            }));
+        	
             stompClient.disconnect();
         }
         setConnected(false);
-        console.log("Disconnected");
+        location.href="/roomList";
     }
 
     //html 에서 입력값, roomId 를 받아서 Controller 로 전달
     function sendChat() {
         stompClient.send("/send/"+roomId, {},
             JSON.stringify({
-                'sender': $("#sender").val(),
+                'sender': sender,
                 'message' : $("#message").val()
             }));
     }
@@ -105,20 +124,37 @@
     //저장된 채팅 불러오기
     function loadChat(chatList){
         if(chatList != null) {
+            var chatTxt = "";
             for(chat in chatList) {
-                $("#chatting").append(
-                    "<tr><td>" + "[" + chatList[chat].sender + "]님의 메세지 : " + chatList[chat].message + "</td></tr>"
-                );
+            	if(chatList[chat].enterFlag != null) {
+            		var txtColor = chatList[chat].enterFlag == 0? 'blue':'red';
+            		chatTxt =  "<tr><td style='color:"+txtColor+";'>" + chatList[chat].sender + chatList[chat].message + "</td></tr>"
+            	}
+            	else {
+                    chatTxt = "<tr><td>" + "[" + chatList[chat].sender + "]님의 메세지 : " + chatList[chat].message + "</td></tr>"
+            	}
+                $("#chatting").append(chatTxt);
+                
+                scrollFloor();
             }
         }
     }
 
     //보낸 채팅 보기
     function showChat(chatMessage) {
-        $("#chatting").append(
-            "<tr><td>" + "[" + chatMessage.sender + "]님의 메세지 : " + chatMessage.message + "</td></tr>"
-        );
+    	var chatTxt = "";
+    	if(chatMessage.enterFlag != null) {
+    		var txtColor = chatMessage.enterFlag == 0? 'blue':'red';
+    		chatTxt =  "<tr><td style='color:"+txtColor+";'>" + chatMessage.sender + chatMessage.message + "</td></tr>"
+    	}
+    	else {
+    		chatTxt =	"<tr><td>" + "[" + chatMessage.sender + "]님의 메세지 : " + chatMessage.message + "</td></tr>";
+    	}
+    	
+        $("#chatting").append(chatTxt);
         $("#message").val("");
+        
+        scrollFloor();
     }
 
     $(function () {
@@ -128,7 +164,6 @@
         $( "#connect" ).click(function() { connect(); });
         $( "#disconnect" ).click(function() { disconnect(); });
         $( "#send" ).click(function() {
-        	$("#sender").disabled();
         	sendChat(); 
         });
     });

@@ -36,15 +36,19 @@ public class Chat {
 	@Column(columnDefinition = "TEXT")
 	private String message;
 	
+	@Column(name = "enter_flag")
+	private Integer enterFlag;
+	
 	@CreatedDate
 	@Column(updatable = false)
 	private LocalDateTime sendDate;
 	
 	@Builder
-	public Chat(Room room, String sender, String message) {
+	public Chat(Room room, String sender, String message, Integer enterFlag) {
 	    this.room = room;
 	    this.sender = sender;
 	    this.message = message;
+	    this.enterFlag = enterFlag;
 	    this.sendDate = LocalDateTime.now();
 	}
 	
@@ -55,11 +59,12 @@ public class Chat {
 	 * @param message 내용
 	 * @return Chat Entity
 	 */
-	public static Chat createChat(Room room, String sender, String message) {
+	public static Chat createChat(Room room, String sender, String message, Integer enterFlag) {
 	    return Chat.builder()
 	            .room(room)
 	            .sender(sender)
 	            .message(message)
+	            .enterFlag(enterFlag)
 	            .build();
 	}
 }
